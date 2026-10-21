@@ -1,0 +1,17 @@
+groups:
+  - name: demo-canary
+    rules:
+      - alert: CanaryHighErrorRate
+        expr: (sum(rate(demo_http_requests_total{version="v2",status=~"5.."}[1m])) or vector(0)) / clamp_min(sum(rate(demo_http_requests_total{version="v2"}[1m])), 0.001) > 0.08
+        for: 1m
+        labels:
+          severity: warning
+        annotations:
+          summary: 'La versión v2 supera el 8% de errores 5xx'
+      - alert: CanaryHighP95Latency
+        expr: histogram_quantile(0.95, sum by (le) (rate(demo_http_request_duration_seconds_bucket{version="v2"}[1m]))) > 0.5
+        for: 1m
+        labels:
+          severity: warning
+        annotations:
+          summary: 'La versión v2 supera 500 ms en p95'
